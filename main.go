@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os/exec"
 	"path/filepath"
+
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -39,11 +44,42 @@ func minikubeIsRunning(err error) bool {
 }
 
 func createK8sConfig() (*kubernetes.Clientset, error) {
-	cfg, _ := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
-	return kubernetes.NewForConfig(cfg)
+	config, _ := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
+	return kubernetes.NewForConfig(config)
 }
 
-func createProjectNamespace() {
+func createProjectNamespace(client *kubernetes.Clientset) {
+	_, getError := client.CoreV1().Namespaces().Get(context.Background(), "v8s", metav1.GetOptions{})
+	if getError != nil {
+		println(getError.Error())
+
+		if getError.Error() == "namespaces \"v8s\" not found" {
+			println("Creating \"v8s\" namespace")
+			v8sNamespace := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "v8s",
+				},
+			}
+			_, setError := client.CoreV1().Namespaces().Create(context.Background(), v8sNamespace, metav1.CreateOptions{})
+			if setError != nil {
+				println(setError.Error())
+			}
+		}
+	} else {
+		println("Namespace \"v8s\" already exists.Would you like to overwrite it?\n\tY or n")
+		var input string
+		fmt.Scanln(&input)
+		if input == "Y" {
+			fmt.Println("Yes")
+			// Delete and overwrite
+		} else if input == "n" {
+			fmt.Println("No")
+			// Exit program
+		} else {
+			fmt.Println("Invalid input")
+			// Exit program
+		}
+	}
 	// Does vltrneetus namespace exist?
 	// If it does
 	// Prompt user to oveerwrite
@@ -75,9 +111,8 @@ func resetCluster() {
 func main() {
 	_, err := exec.Command("minikube", "status", "-o", "json").Output()
 	if minikubeIsRunning(err) {
-		log.Println("Initializing cluster...")
-
-		// k8sClient, _ := createK8sConfig()
+		k8sClient, _ := createK8sConfig()
+		createProjectNamespace(k8sClient)
 
 		// createProjectNamespace
 
