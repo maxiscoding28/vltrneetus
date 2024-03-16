@@ -43,21 +43,43 @@ func createK8sConfig() (*kubernetes.Clientset, error) {
 	return kubernetes.NewForConfig(cfg)
 }
 
-// func doesVaultNamespaceExist(client *kubernetes.Clientset) bool {
-// 	_, err := client.CoreV1().Namespaces().Get(context.Background(), "vault", metav1.GetOptions{})
-// 	if
-// 	return false
-// }
+func createProjectNamespace() {
+	// Does vltrneetus namespace exist?
+	// If it does
+	// Prompt user to oveerwrite
+	// If yes to overwrite delete namespace
+	// If no then exit program
+	// Create namespace in k8s
+}
+
+func createTLSFiles() {
+
+}
+
+func createDeployment() {
+
+}
+
+func initializeVault() {
+
+}
+
+func configureVault() {
+
+}
+
+func resetCluster() {
+
+}
 
 func main() {
 	_, err := exec.Command("minikube", "status", "-o", "json").Output()
 	if minikubeIsRunning(err) {
 		log.Println("Initializing cluster...")
+
 		// k8sClient, _ := createK8sConfig()
 
-		// Create Vltrneetus Namespace
-		// Check if Vltrneetus Namespace exists. IF it does, user input to delete and overwrite
-		// If not, create it
+		// createProjectNamespace
 
 		// Create TLS cluster in Vault
 
